@@ -184,6 +184,12 @@ class Xilinx: public Device, SPIInterface {
 		uint16_t _cpld_addr_size; /**< number of addr bits */
 		char _cpld_base_name[7]; /**< cpld name (without package size) */
 		int _irlen; /**< IR bit length */
+		
+		
+		
+		void xadc_write(unsigned short addr, unsigned short data);
+		unsigned int xadc_read(unsigned short addr);
+		unsigned int xadc_single(unsigned short ch);
 };
 
 #endif
