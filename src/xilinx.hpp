@@ -24,7 +24,7 @@ class Xilinx: public Device, SPIInterface {
 				const std::string &spiOverJtagPath,
 				const std::string &target_flash,
 				bool verify, int8_t verbose,
-				bool skip_load_bridge, bool skip_reset);
+				bool skip_load_bridge, bool skip_reset, bool read_xadc);
 		~Xilinx();
 
 		void program(unsigned int offset, bool unprotect_flash) override;
@@ -190,6 +190,12 @@ class Xilinx: public Device, SPIInterface {
 			PRIMARY_FLASH = 0x1,
 			SECONDARY_FLASH = 0x2
 		};
+		
+		
+		/* XADC */
+		unsigned int xadc_read(unsigned short addr);
+		void xadc_write(unsigned short addr, unsigned short data);
+		unsigned int xadc_single(unsigned short ch);
 
 		/*!
 		 * \brief Starting from UltraScale, Xilinx devices can support dual
