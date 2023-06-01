@@ -24,7 +24,7 @@ class Xilinx: public Device, SPIInterface {
 				const std::string &spiOverJtagPath,
 				const std::string &target_flash,
 				bool verify, int8_t verbose,
-				bool skip_load_bridge, bool skip_reset, bool read_xadc);
+				bool skip_load_bridge, bool skip_reset, bool read_dna, bool read_xadc);
 		~Xilinx();
 
 		void program(unsigned int offset, bool unprotect_flash) override;
@@ -196,7 +196,11 @@ class Xilinx: public Device, SPIInterface {
 		unsigned int xadc_read(unsigned short addr);
 		void xadc_write(unsigned short addr, unsigned short data);
 		unsigned int xadc_single(unsigned short ch);
-
+		
+		
+		/* DNA */
+		unsigned long long fuse_dna_read(void);
+		
 		/*!
 		 * \brief Starting from UltraScale, Xilinx devices can support dual
 		 *        QSPI flash configuration, with two different flash chips

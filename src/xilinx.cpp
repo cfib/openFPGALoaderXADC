@@ -192,6 +192,31 @@ static void open_bitfile(
 	printSuccess("DONE");
 }
 
+#define FUSE_DNA   0x32 //110010
+
+unsigned long long Xilinx::fuse_dna_read(void)
+{
+	unsigned char tx_data[8] = {0,0,0,0,0,0,0,0};
+	unsigned char rx_data[8];
+	
+	//tx_data = htonl(tx_data);
+	
+	_jtag->go_test_logic_reset();
+	_jtag->shiftIR(FUSE_DNA, 6);
+	_jtag->shiftDR((unsigned char *)&tx_data, (unsigned char *)&rx_data, 64);
+	
+	unsigned long long dna = 0;
+	
+	for(int i = 0; i < 8; i++) {
+		unsigned char rev = 0;
+		for (int j = 0; j < 8; j++) {
+			rev |= ((rx_data[i]>>j)&1)<<(7-j);
+		}
+		dna = (dna << 8ULL) | rev;
+	}
+	return dna & 0x1ffffffffffffff;
+}
+
 unsigned int Xilinx::xadc_read(unsigned short addr)
 {
 	unsigned int tx_data = (1 << 26) | (addr << 16);
@@ -241,7 +266,7 @@ Xilinx::Xilinx(Jtag *jtag, const std::string &filename,
 	const std::string &device_package, const std::string &spiOverJtagPath,
 	const std::string &target_flash,
 	bool verify, int8_t verbose,
-	bool skip_load_bridge, bool skip_reset, bool read_xadc):
+	bool skip_load_bridge, bool skip_reset, bool read_dna, bool read_xadc):
 	Device(jtag, filename, file_type, verify, verbose),
 	SPIInterface(filename, verbose, 256, verify, skip_load_bridge,
 				 skip_reset),
@@ -352,6 +377,15 @@ Xilinx::Xilinx(Jtag *jtag, const std::string &filename,
 		_fpga_family = UNKNOWN_FAMILY;
 	}
 	
+	if (read_dna) {
+		if (_fpga_family == ARTIX_FAMILY) {
+			unsigned long long dna = Xilinx::fuse_dna_read();
+			printf("{\"dna\": \"0x%016lx\"}\n", dna);
+		} else {
+			throw std::runtime_error("Error: read_xadc only supported for Artix 7");
+		}
+	}
+			
 	if (read_xadc) {
 		if (_fpga_family == ARTIX_FAMILY) {
 			
